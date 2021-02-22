@@ -41,6 +41,16 @@ public class UsuarioDaoTest {
     }
 
     @Test
+    public void deveriaExcluirUmUsuario() {
+        Usuario usuario = criarUsuario();
+
+        dao.deletar(usuario);
+
+        Assert.assertThrows(NoResultException.class,
+                () -> this.dao.buscarPorUsername(usuario.getNome()));
+    }
+
+    @Test
     public void deveriaAcharUsuarioPeloUsername() {
         Usuario usuario = criarUsuario();
 
