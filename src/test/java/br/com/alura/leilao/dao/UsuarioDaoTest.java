@@ -2,8 +2,12 @@ package br.com.alura.leilao.dao;
 
 import br.com.alura.leilao.model.Usuario;
 import br.com.alura.leilao.utils.JPAUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.Assert;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
@@ -14,18 +18,31 @@ public class UsuarioDaoTest {
 
     private UsuarioDao dao;
 
-    @Test
-    public void deveriaAcharUsuarioPeloUsername() {
+    private EntityManager em;
 
-        EntityManager em = JPAUtils.getEntityManager();
+    @Before
+    public void beforeEach() {
+        em = JPAUtils.getEntityManager();
+        dao = new UsuarioDao(em);
+        em.getTransaction().begin();
+    }
 
-        this.dao = new UsuarioDao(em);
+    @After
+    public void afterEach() {
+        em.getTransaction().rollback();
+    }
 
+    private Usuario criarUsuario() {
         Usuario usuario = new Usuario("fulano", "fulano@email.com", "123456");
 
-        em.getTransaction().begin();
         em.persist(usuario);
-        em.getTransaction().commit();
+
+        return usuario;
+    }
+
+    @Test
+    public void deveriaAcharUsuarioPeloUsername() {
+        Usuario usuario = criarUsuario();
 
         Usuario procurado = this.dao.buscarPorUsername(usuario.getNome());
 
@@ -35,18 +52,10 @@ public class UsuarioDaoTest {
 
     @Test
     public void naoDeveriaAcharUsuarioPeloUsername() {
+        Usuario usuario = criarUsuario();
 
-        EntityManager em = JPAUtils.getEntityManager();
-
-        this.dao = new UsuarioDao(em);
-
-        Usuario usuario = new Usuario("fulano", "fulano@email.com", "123456");
-
-        em.getTransaction().begin();
-        em.persist(usuario);
-        em.getTransaction().commit();
-
-        Assert.assertThrows(NoResultException.class, () -> this.dao.buscarPorUsername("Beltrano"));
+        Assert.assertThrows(NoResultException.class,
+                () -> this.dao.buscarPorUsername(usuario.getNome() + " diferente"));
 
     }
 
